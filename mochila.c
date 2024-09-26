@@ -40,7 +40,7 @@ bool mochila_push(MOCHILA *mochila, ITEM *item)
 
 ITEM *mochila_pop(MOCHILA *mochila)
 {
-    if (mochila == NULL) return NULL;
+    if (mochila == NULL || mochila->tam == 0) return NULL;
 
     mochila->tam--;
     mochila->peso -= item_get_peso(mochila->itens[mochila->tam]);
@@ -48,3 +48,16 @@ ITEM *mochila_pop(MOCHILA *mochila)
     return mochila->itens[mochila->tam]; 
 }
 
+bool mochila_excluir(MOCHILA **mochila)
+{
+    if (mochila == NULL) return false;
+
+    for(int i = 0, fim = (*mochila)->tam; i < fim; i++)
+    {
+        item_apagar(&(*mochila)->itens[i]);
+        (*mochila)->itens[i] = NULL;
+    }
+    free(*mochila);
+    mochila = NULL;
+    return true;
+}

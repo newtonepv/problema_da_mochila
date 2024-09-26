@@ -1,9 +1,23 @@
-all: compile
-	gcc -o exe item.o forca_bruta.o main.o -std=c99 -Wall
+CC = gcc
+CFLAGS = -Wall -g
+OBJ = main.o mochila.o item.o
 
-compile:
-	gcc -c forca_bruta.c main.c item.c
-clean:
-	rm *.o exe
 run:
-	./exe
+	./main
+
+all: main
+
+main: $(OBJ)
+	$(CC) $(CFLAGS) -o main $(OBJ)
+
+main.o: main.c mochila.h item.h
+	$(CC) $(CFLAGS) -c main.c
+
+mochila.o: mochila.c mochila.h item.h
+	$(CC) $(CFLAGS) -c mochila.c
+
+item.o: item.c item.h
+	$(CC) $(CFLAGS) -c item.c
+
+clean:
+	rm -f *.o main

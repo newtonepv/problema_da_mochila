@@ -22,8 +22,6 @@ bool item_apagar(ITEM **item)
     if (*item == NULL) return false;
     free(*item);
     *item = NULL;
-    free(item);
-    item = NULL;
     return true;
 }
 
