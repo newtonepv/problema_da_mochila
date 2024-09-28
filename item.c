@@ -1,6 +1,7 @@
 #include "item.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 struct item{
     float peso;
@@ -9,6 +10,8 @@ struct item{
 
 ITEM *item_criar(float peso, float valor)
 {
+    if (peso < 0 || valor < 0) return NULL;
+    
     ITEM *item = (ITEM*) malloc(sizeof(ITEM));
 
     if (item == NULL) return NULL;
@@ -41,7 +44,7 @@ float item_get_valor(ITEM *item)
 
 float item_raciona(ITEM *item)
 {
-    if (item == NULL) return -1;
+    if (item == NULL || item->peso == 0) return -1;
 
     return item->valor / item->peso;
 }

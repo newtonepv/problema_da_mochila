@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define MAX 5000
+#define INFINITY 9999999.9
 
 struct item{
     float peso;
@@ -19,8 +20,9 @@ struct mochila{
 };
 void exibe_itens(ITEM **itens, int n);
 void libera_itens(ITEM **itens, int n);
-void forca_bruta(MOCHILA *mochila, ITEM **itens, int n);
-void mochila_forca_bruta(MOCHILA *mochila_original, ITEM **itens, int n);
+void forca_bruta(MOCHILA *mochila_original, ITEM **itens, int n);
+void greedy(MOCHILA *mochila_original, ITEM **itens, int n);
+void copiar_mochila(MOCHILA *destino, MOCHILA *origem);
 
 int main(){
 
@@ -45,26 +47,11 @@ int main(){
         itens[i] = item_criar(w, v);
     }
 
-    mochila_forca_bruta(mochila, itens, qtdItens);
-    //exibe_itens(itens, qtdItens);
-    //libera_itens(itens, qtdItens);
+    //forca_bruta(mochila, itens, qtdItens);
+    greedy(mochila, itens, qtdItens);
+    libera_itens(itens, qtdItens);
     
     return 0;
-
-    //qtdItens = 3;
-    //pesos = malloc(sizeof(int)*qtdItens);
-    //valores = malloc(sizeof(int)*qtdItens);
-    //pesos[0]=1;pesos[1]=1;pesos[2]=2;
-    //valores[0]=200;valores[1]=300;valores[2]=300;
-
-    //int* mochila = malloc(sizeof(int)*qtdItens);
-    //printf("%d", organizar_mochila(pesos,valores, 2,mochila,2,0,0,0));
-    //printf(" %d, %d", mochila[0],mochila[1]);
-
-    //free(pesos);
-    //free(valores);
-    //free(mochila);
-    //return 0;
 }
 
 void exibe_itens(ITEM **itens, int n)
@@ -89,22 +76,72 @@ void libera_itens(ITEM **itens, int n)
     return;
 }
 
+void copiar_mochila(MOCHILA *destino, MOCHILA *origem) {
+    destino->peso = origem->peso;
+    destino->valortotal = origem->valortotal;
+    destino->tam = origem->tam;
+    for (int i = 0; i < origem->tam; i++) {
+        destino->itens[i] = origem->itens[i];
+    }
+}
+
+void greedy(MOCHILA *mochila_original, ITEM **itens, int n)
+{
+    while (mochila_original->peso < mochila_original->capacidade) {
+        ITEM *melhoritem = NULL;
+        int melhor_index = -1;
+        
+        for (int i = 0; i < n; i++) {
+            if (itens[i] != NULL) {
+                if (melhoritem == NULL || item_raciona(itens[i]) > item_raciona(melhoritem)) {
+                    melhoritem = itens[i];
+                    melhor_index = i;
+                }
+            }
+        }
+        //printf("\n\nMELHOR ITEM: Peso: %.2f Valor: %.2f\n", melhoritem->peso, melhoritem->valor);
+        if (melhoritem == NULL) {
+            break;
+        }
+        mochila_push(mochila_original, melhoritem);
+        itens[melhor_index] = NULL;
+    }
+
+    printf("Melhor valor encontrado: %.2f\n", mochila_original->valortotal);
+    printf("Peso da melhor combinacao: %.2f\n", mochila_original->peso);
+    printf("Itens na melhor combinacao:\n");
+    for (int i = 0; i < mochila_original->tam; i++) {
+        printf("Item %d - Peso: %.2f, Valor: %.2f\n", i + 1, mochila_original->itens[i]->peso, mochila_original->itens[i]->valor);
+    }
+}
 void forca_bruta(MOCHILA *mochila_original, ITEM **itens, int n)
 {
-    // A melhor combinacao vai ser armazenada num array de itens
-    ITEM *melhor_combinacao[n];
+    // Aqui nós criamos a mochila que será a melhor mochila. Inicialmente ela terá a mesma capacidade que a mochila que foi enviada
+    // mas os outros atributos são zerados no começo.
+    MOCHILA melhor_mochila = {0, mochila_original->capacidade, 0, 0, {NULL}};
 
-    int total = 1 << n;
+    //Testa todas as combinações possiveis com AND binário
+    for (int mascara = 0; mascara < (1 << n); mascara++) {
+        MOCHILA combinacao_atual = {0, mochila_original->capacidade, 0, 0, {NULL}};
 
-    // O que vai definir se a combinação é a memlhor possível é se ela tem mais valor e cabe na mochila
-    float melhor_peso = 0;
-    float melhor_valor = 0;
-    // Os novos melhores serao encontrados com um IF, se forem maiores que o antigo maior e couber na mochila
-    // trocaremos os melhores valores e o array de itens melhor_combinação
+        for (int i = 0; i < n; i++) {
+            if (mascara & (1 << i)) {
+                combinacao_atual.peso += itens[i]->peso;
+                combinacao_atual.valortotal += itens[i]->valor;
+                combinacao_atual.itens[combinacao_atual.tam++] = itens[i];
+            }
+        }
 
-    // Precisamos agora de um array de itens com TODAS as combinações de itens
-    ITEM *combinacoes[total];
+        // Verifica se a mochila é válida e se é melhor que a antiga melhor
+        if (combinacao_atual.peso <= mochila_original->capacidade && combinacao_atual.valortotal > melhor_mochila.valortotal) {
+            copiar_mochila(&melhor_mochila, &combinacao_atual);
+        }
+    }
 
-    // Agora precisamos adicionar todas as combinações possíveis
-    // Eis o problema: Como faremos isso?
+    printf("Melhor valor encontrado: %.2f\n", melhor_mochila.valortotal);
+    printf("Peso da melhor combinacao: %.2f\n", melhor_mochila.peso);
+    printf("Itens na melhor combinacao:\n");
+    for (int i = 0; i < melhor_mochila.tam; i++) {
+        printf("Item %d - Peso: %.2f, Valor: %.2f\n", i, melhor_mochila.itens[i]->peso, melhor_mochila.itens[i]->valor);
+    }
 }

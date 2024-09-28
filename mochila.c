@@ -28,7 +28,7 @@ bool mochila_push(MOCHILA *mochila, ITEM *item)
 {
     if (mochila == NULL || item == NULL) return false;
 
-    if (mochila->peso + item_get_peso(item) < mochila->capacidade)
+    if (mochila->peso + item_get_peso(item) <= mochila->capacidade)
     {
         mochila->itens[mochila->tam++] = item;
         mochila->valortotal += item_get_valor(item);
