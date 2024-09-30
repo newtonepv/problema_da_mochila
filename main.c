@@ -3,6 +3,7 @@
 #include "mochila.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #define MAX 5000
 #define INFINITY 9999999.9
 
@@ -24,39 +25,60 @@ void forca_bruta(MOCHILA *mochila_original, ITEM **itens, int n);
 void greedy(MOCHILA *mochila_original, ITEM **itens, int n);
 void copiar_mochila(MOCHILA *destino, MOCHILA *origem);
 void matriz_dp(int W, int peso[], int valor[], int n);
-int main(){
+int main() {
     printf("Digite que algoritmo quer usar: 1 guloso, 2 força bruta, 3 programação dinamica\n");
     int tipo;
     scanf("%d", &tipo);
-    if(tipo<3){
-    int qtdItens;
-    float capacidade;
 
-    printf("Digite a capacidade da mochila: ");
-    scanf("%f", &capacidade);
-    MOCHILA *mochila = mochila_criar(capacidade);
-    printf("Digite quantos itens serão inseridos: ");
-    scanf("%i", &qtdItens);
+    if (tipo < 3) {
+        int qtdItens;
+        float capacidade;
 
-    float w, v;
+        printf("Digite a capacidade da mochila: ");
+        scanf("%f", &capacidade);
+        MOCHILA* mochila = mochila_criar(capacidade);
+        printf("Digite quantos itens serão inseridos: ");
+        scanf("%d", &qtdItens);
 
-    ITEM **itens = malloc(sizeof(ITEM*) * qtdItens);
-    if (itens == NULL) return -1;
-    printf("digite, um por um, os itens a seguir, primeiro o peso do item, e depois o valor do item\n");
-    for(int i = 0; i < qtdItens; i++)
-    {
-        scanf("%f %f", &w, &v);
-        itens[i] = item_criar(w, v);
-    }
+        float w, v;
+        ITEM** itens = malloc(sizeof(ITEM*) * qtdItens);
+        if (itens == NULL) return -1;
 
-    if(tipo==2){
-        forca_bruta(mochila, itens, qtdItens);
-    }else{
-        greedy(mochila, itens, qtdItens);
-    }
-    libera_itens(itens, qtdItens);
-    
-    }else if(tipo==3){
+        printf("Digite, um por um, os itens a seguir, primeiro o peso do item, e depois o valor do item\n");
+        for (int i = 0; i < qtdItens; i++) {
+            scanf("%f %f", &w, &v);
+            itens[i] = item_criar(w, v);
+        }
+
+        // Medir o tempo de execução
+        clock_t start, end;
+        double tempo_gasto;
+        
+        start = clock();
+        
+        if (tipo == 2) {
+            forca_bruta(mochila, itens, qtdItens);
+            end = clock();
+            tempo_gasto = ((double)(end - start)) / CLOCKS_PER_SEC;
+
+            // Gravar tempo no arquivo 'tempo_forca_bruta.dat'
+            FILE *f = fopen("tempo_forca_bruta.dat", "a");
+            fprintf(f, "%d %f\n", qtdItens, tempo_gasto);
+            fclose(f);
+        } else {
+            greedy(mochila, itens, qtdItens);
+            end = clock();
+            tempo_gasto = ((double)(end - start)) / CLOCKS_PER_SEC;
+
+            // Gravar tempo no arquivo 'tempo_greedy.dat'
+            FILE *f = fopen("tempo_greedy.dat", "a");
+            fprintf(f, "%d %f\n", qtdItens, tempo_gasto);
+            fclose(f);
+        }
+
+        libera_itens(itens, qtdItens);
+
+    } else if (tipo == 3) {
         int qtdItens;
         int capacidade;
 
@@ -65,21 +87,37 @@ int main(){
         printf("Digite quantos itens serão inseridos: ");
         scanf("%d", &qtdItens);
 
-        int w=0, v=0;
-        int* peso = malloc(sizeof(int)*qtdItens);
-        int* valor = malloc(sizeof(int)*qtdItens);
+        int w = 0, v = 0;
+        int* peso = malloc(sizeof(int) * qtdItens);
+        int* valor = malloc(sizeof(int) * qtdItens);
 
-        printf("digite, um por um, os itens a seguir, primeiro o peso do item, e depois o valor do item\n");
-        for(int i = 0; i < qtdItens; i++)
-        {
+        printf("Digite, um por um, os itens a seguir, primeiro o peso do item, e depois o valor do item\n");
+        for (int i = 0; i < qtdItens; i++) {
             scanf("%d %d", &w, &v);
-            peso[i]=w;
-            valor[i]=v;
+            peso[i] = w;
+            valor[i] = v;
         }
-        matriz_dp(capacidade,peso,valor,qtdItens);
+
+        // Medir o tempo de execução
+        clock_t start, end;
+        double tempo_gasto;
+        
+        start = clock();
+        
+        matriz_dp(capacidade, peso, valor, qtdItens);
+        
+        end = clock();
+        tempo_gasto = ((double)(end - start)) / CLOCKS_PER_SEC;
+
+        // Gravar tempo no arquivo 'tempo_programacao_dinamica.dat'
+        FILE *f = fopen("tempo_programacao_dinamica.dat", "a");
+        fprintf(f, "%d %f\n", qtdItens, tempo_gasto);
+        fclose(f);
+
+        free(peso);
+        free(valor);
     }
-    
-    
+
     return 0;
 }
 
@@ -188,7 +226,7 @@ void matriz_dp(int W, int peso[], int valor[], int n) {
                 /*a ""recursividade"" esta em que se quando procuramos pelo valor max caso nao pegarmos
                 um item, seria o valor max da mochila se avaliarmos os primeiros "i-1" itens com a mesma capacidade
                 */ 
-                /*assim como a forca bruta, esse algoritimo avalia a melhor possibilidade vendo se 
+                /*esse algoritimo avalia a melhor possibilidade vendo se 
                 pegar ou nao pegar o item é o melhor, o valor caso pegarmos o item é, {o maior valor 
                 quando analizamos i-1 itens com a capacidade menos esse item} + o valor desse item
                 */
@@ -203,7 +241,7 @@ void matriz_dp(int W, int peso[], int valor[], int n) {
     // O valor máximo estará em dp[n][W]
     printf("Melhor valor encontrado: %d\n", dp[n][W]);
 }
-/*Forca Bruta Primitiva
+/*Prog Dinamica Primitiva
 void copiar_array(int* destino, int* origem, int tamanho) {
     for (int i = 0; i < tamanho; i++) {
         destino[i] = origem[i];
