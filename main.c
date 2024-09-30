@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <time.h>
 #define MAX 5000
-#define INFINITY 9999999.9
 
 struct item{
     float peso;
