@@ -6,11 +6,13 @@
 #include <time.h>
 #define MAX 5000
 
+// Criamos as estruturas item e mochila para auxiliar nos algoritmos "greedy" e "forca_bruta".
 struct item{
     float peso;
     float valor;
 };
 
+// Nas mochilas são adicionadas as características dela, como peso, capacidade e valor total.
 struct mochila{
     float peso;
     float capacidade;
@@ -18,13 +20,17 @@ struct mochila{
     int tam;
     ITEM *itens[MAX];
 };
+
+// Declaração das funcões auxiliares
 void exibe_itens(ITEM **itens, int n);
 void libera_itens(ITEM **itens, int n);
 void forca_bruta(MOCHILA *mochila_original, ITEM **itens, int n);
 void greedy(MOCHILA *mochila_original, ITEM **itens, int n);
 void copiar_mochila(MOCHILA *destino, MOCHILA *origem);
 void matriz_dp(int W, int peso[], int valor[], int n);
+
 int main() {
+    // O usuário escolhe qual abordagem será usada
     printf("Digite que algoritmo quer usar: 1 guloso, 2 força bruta, 3 programação dinamica\n");
     int tipo;
     scanf("%d", &tipo);
@@ -43,7 +49,7 @@ int main() {
         ITEM** itens = malloc(sizeof(ITEM*) * qtdItens);
         if (itens == NULL) return -1;
 
-        printf("Digite, um por um, os itens a seguir, primeiro o peso do item, e depois o valor do item\n");
+        printf("Digite, um por um, os itens a seguir (peso valor)\n");
         for (int i = 0; i < qtdItens; i++) {
             scanf("%f %f", &w, &v);
             itens[i] = item_criar(w, v);
@@ -153,26 +159,34 @@ void copiar_mochila(MOCHILA *destino, MOCHILA *origem) {
 
 void greedy(MOCHILA *mochila_original, ITEM **itens, int n)
 {
+    // Realiza o loop enquanto tiver espaço na mochila
     while (mochila_original->peso < mochila_original->capacidade) {
         ITEM *melhoritem = NULL;
         int melhor_index = -1;
-        
+
+        // busca pelo melhor item, tendo como base a razão entre valor e peso.
+        // Para facilitar, foi feito o uso de uma função auxiliar, que calcula e retorna essa razão
         for (int i = 0; i < n; i++) {
             if (itens[i] != NULL) {
                 if (melhoritem == NULL || item_raciona(itens[i]) > item_raciona(melhoritem)) {
+                    // Caso haja um novo melhor, atualizamos esse valor
                     melhoritem = itens[i];
                     melhor_index = i;
                 }
             }
         }
-        //printf("\n\nMELHOR ITEM: Peso: %.2f Valor: %.2f\n", melhoritem->peso, melhoritem->valor);
+
+        // Caso não haja mais nenhum item para ser adicionado, quebramos o loop
         if (melhoritem == NULL) {
             break;
         }
+        
+        // Adicionamos o melhor item na mochila original e mudamos seu ponteiro para NULL, para que não sejam adicionados valores repetidos. 
         mochila_push(mochila_original, melhoritem);
         itens[melhor_index] = NULL;
     }
 
+    // Exibe os dados do melhor valor
     printf("Melhor valor encontrado: %.2f\n", mochila_original->valortotal);
     printf("Peso da melhor combinacao: %.2f\n", mochila_original->peso);
     printf("Itens na melhor combinacao:\n");
@@ -186,7 +200,7 @@ void forca_bruta(MOCHILA *mochila_original, ITEM **itens, int n)
     // mas os outros atributos são zerados no começo.
     MOCHILA melhor_mochila = {0, mochila_original->capacidade, 0, 0, {NULL}};
 
-    //Testa todas as combinações possiveis com AND binário
+    //Testa todas as combinações possiveis com AND binário e uma máscara
     for (int mascara = 0; mascara < (1 << n); mascara++) {
         MOCHILA combinacao_atual = {0, mochila_original->capacidade, 0, 0, {NULL}};
 
@@ -204,6 +218,7 @@ void forca_bruta(MOCHILA *mochila_original, ITEM **itens, int n)
         }
     }
 
+    // Exibe a melhor configuração possivel
     printf("Melhor valor encontrado: %.2f\n", melhor_mochila.valortotal);
     printf("Peso da melhor combinacao: %.2f\n", melhor_mochila.peso);
     printf("Itens na melhor combinacao:\n");
@@ -255,16 +270,18 @@ int organizar_mochila(int* pesos, int* valores, int qtdItens, int* mochila,
     printf("ocupados =%d ", *ocupados);
     if (passados >= qtdItens) {
         printf("parou, passados = %d, qtdItens = %d\n",passados,qtdItens);
-        return valor; // Não há mais itens para processar
+        // Não há mais itens para processar
+        return valor;
     }
     if (capacidade < pesos[passados]) {
         printf("parou, passados = %d, capacidade = %d, valor = %d\n", passados, capacidade, valor);
-        return valor; // Capacidade negativa indica uma solução inválida
+        // Capacidade negativa indica uma solução inválida
+        return valor; 
     }
     
     printf("chamou, passados = %d, capacidade = %d, valor = %d\n", passados, capacidade, valor);
     
-    //alloca memoria para os ocupados temporarios ( vao ser modificados na recursao por cada chamada,
+    // aloca memoria para os ocupados temporarios ( vao ser modificados na recursao por cada chamada,
     // a que tiver mais valor vai prevalecer)
     int* ocupados1 = malloc(sizeof(int));
     int* ocupados2 = malloc(sizeof(int));
@@ -293,11 +310,13 @@ int organizar_mochila(int* pesos, int* valores, int qtdItens, int* mochila,
     int maior_valor;
     if (i1 > i2) {
         maior_valor = i1;
-        copiar_array(mochila, com, qtdItens); // Atualiza a mochila com os IDs da melhor solução
+         // Atualiza a mochila com os IDs da melhor solução
+        copiar_array(mochila, com, qtdItens);
         *ocupados = *ocupados1;
     } else {
         maior_valor = i2;
-        copiar_array(mochila, sem, qtdItens); // Atualiza a mochila com os IDs da melhor solução
+         // Atualiza a mochila com os IDs da melhor solução
+        copiar_array(mochila, sem, qtdItens);
         *ocupados = *ocupados2;
     }
 
