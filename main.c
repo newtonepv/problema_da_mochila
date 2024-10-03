@@ -52,7 +52,7 @@ int main() {
         printf("Digite, um por um, os itens a seguir (peso valor)\n");
         for (int i = 0; i < qtdItens; i++) {
             scanf("%f %f", &w, &v);
-            itens[i] = item_criar(w, v);
+            itens[i] = item_criar(w, v);// itens sao armazenados em um vetor
         }
 
         // Medir o tempo de execução
@@ -82,6 +82,7 @@ int main() {
         }
 
         libera_itens(itens, qtdItens);
+        //estes algoritmos usam vetores de itens portanto precisamos apagar eles
 
     } else if (tipo == 3) {
         int qtdItens;
@@ -98,6 +99,9 @@ int main() {
 
         printf("Digite, um por um, os itens a seguir, primeiro o peso do item, e depois o valor do item\n");
         for (int i = 0; i < qtdItens; i++) {
+            //diferente dos anteriores, este nao usa um array de itens e 
+            //sim dois arrays, um de pesos e outro de valores
+        
             scanf("%d %d", &w, &v);
             peso[i] = w;
             valor[i] = v;
@@ -121,6 +125,7 @@ int main() {
 
         free(peso);
         free(valor);
+        //precisamos dar liberar os arrays usados
     }
 
     return 0;
@@ -255,7 +260,7 @@ void matriz_dp(int W, int peso[], int valor[], int n) {
     // O valor máximo estará em dp[n][W]
     printf("Melhor valor encontrado: %d\n", dp[n][W]);
 }
-/*Prog Dinamica Primitiva
+/*Solucao Recursiva
 void copiar_array(int* destino, int* origem, int tamanho) {
     for (int i = 0; i < tamanho; i++) {
         destino[i] = origem[i];
